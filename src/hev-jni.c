@@ -18,8 +18,12 @@
 #include <string.h>
 
 #include "hev-main.h"
+#include "hev-drop.h"
 
 #include "hev-jni.h"
+
+/* Definition of the global drop-mode flag (declared in hev-drop.h) */
+atomic_int hev_drop_mode = ATOMIC_VAR_INIT (0);
 
 /* clang-format off */
 #ifndef PKGNAME
@@ -50,11 +54,13 @@ static pthread_key_t current_jni_env;
 static void native_start_service (JNIEnv *env, jobject thiz,
                                   jstring config_path);
 static void native_stop_service (JNIEnv *env, jobject thiz);
+static void native_set_drop (JNIEnv *env, jobject thiz, jboolean enable);
 
 static JNINativeMethod native_methods[] = {
     { "Socks5StartService", "(Ljava/lang/String;)V",
       (void *)native_start_service },
     { "Socks5StopService", "()V", (void *)native_stop_service },
+    { "Socks5SetDrop", "(Z)V", (void *)native_set_drop },
 };
 
 static void
@@ -116,7 +122,7 @@ native_start_service (JNIEnv *env, jobject thiz, jstring config_path)
     (*env)->ReleaseStringUTFChars (env, config_path, (const char *)bytes);
 
     res = pthread_create (&work_thread, NULL, thread_handler, tdata);
-    if (res != 0) {
+    if (res < 0) {
         free (tdata->path);
         free (tdata);
         goto exit;
@@ -141,6 +147,12 @@ native_stop_service (JNIEnv *env, jobject thiz)
     is_working = 0;
 exit:
     pthread_mutex_unlock (&mutex);
+}
+
+static void
+native_set_drop (JNIEnv *env, jobject thiz, jboolean enable)
+{
+    hev_drop_mode_set (enable ? 1 : 0);
 }
 
 #endif /* ANDROID */

@@ -20,6 +20,7 @@
 #include "hev-config.h"
 #include "hev-logger.h"
 #include "hev-compiler.h"
+#include "hev-drop.h"
 #include "hev-socks5-session.h"
 
 #include "hev-socks5-worker.h"
@@ -104,6 +105,15 @@ hev_socks5_worker_task_entry (void *data)
             continue;
         } else if (nfd < 0) {
             break;
+        }
+
+        /* Drop mode: VPN tunnel is restarting.
+         * Close the newly accepted fd immediately so no traffic leaks
+         * outside the tunnel.  Existing sessions keep their sockets open;
+         * the client-side TCP connection stalls but is NOT reset. */
+        if (hev_drop_mode_get ()) {
+            close (nfd);
+            continue;
         }
 
         s = hev_socks5_session_new (nfd);
