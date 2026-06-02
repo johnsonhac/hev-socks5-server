@@ -21,5 +21,6 @@ int set_limit_nofile (int limit_nofile);
 
 int set_sock_bind (int fd, const char *iface);
 int set_sock_mark (int fd, unsigned int mark);
+int set_sock_tos (int fd, int tos);
 
 #endif /* __HEV_MISC_H__ */

@@ -15,6 +15,7 @@
 #include "hev-misc.h"
 #include "hev-logger.h"
 #include "hev-config.h"
+#include "hev-config-const.h"
 #include "hev-socks5-user-mark.h"
 
 #include "hev-socks5-session.h"
@@ -100,6 +101,10 @@ hev_socks5_session_bind (HevSocks5 *self, int fd, const struct sockaddr *dest)
         if (res < 0)
             return -1;
     }
+
+    res = set_sock_tos (fd, HEV_CONFIG_DSCP << 2);
+    if (res < 0)
+        return -1;
 
     return 0;
 }

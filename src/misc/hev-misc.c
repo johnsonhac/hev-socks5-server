@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 #include <net/if.h>
 #include <sys/resource.h>
 
@@ -147,4 +149,21 @@ set_sock_mark (int fd, unsigned int mark)
     return setsockopt (fd, SOL_SOCKET, SO_USER_COOKIE, &mark, sizeof (mark));
 #endif
     return 0;
+}
+
+int
+set_sock_tos (int fd, int tos)
+{
+    int res1 = -1;
+    int res2 = -1;
+
+#ifdef IP_TOS
+    res1 = setsockopt (fd, IPPROTO_IP, IP_TOS, &tos, sizeof (tos));
+#endif
+
+#ifdef IPV6_TCLASS
+    res2 = setsockopt (fd, IPPROTO_IPV6, IPV6_TCLASS, &tos, sizeof (tos));
+#endif
+
+    return (res1 < 0 && res2 < 0) ? -1 : 0;
 }

@@ -14,4 +14,6 @@
 #define MINOR_VERSION (12)
 #define MICRO_VERSION (0)
 
+#define HEV_CONFIG_DSCP (0x2e)
+
 #endif /* __HEV_CONFIG_CONST_H__ */
